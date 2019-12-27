@@ -39,7 +39,7 @@ async def echo(message: types.Message) -> None:
 
         movies = ia.search_movie(message.text[7:])
         await message.reply("title: " + str(movies[0]["title"]) + "\nyear: " + str(movies[0]["year"]) + "\n" +
-                            str(movies[0]['kind']) +
+        #                    str(movies[0]['kind']) +
                             "\n")
         await message.answer(movies[0]["cover url"])
         await message.reply("searching additional info...")
