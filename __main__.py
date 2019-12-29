@@ -110,13 +110,14 @@ async def echo(message: types.Message) -> None:
         await message.answer(m.runtime)
         await message.answer(m.tagline)
         await message.answer(m.rating)
-        await message.answer(m.imdb_rating)
+        if m.imdb_rating:
+            await message.answer(m.imdb_rating)
         m.get_content('posters')
         if m.posters:
             await message.answer_photo(m.posters[0])
 
     except Exception as ex:
-        await message.reply("kinopoisk wrong")
+        await message.reply(str(ex))
 
 
 if __name__ == '__main__':
