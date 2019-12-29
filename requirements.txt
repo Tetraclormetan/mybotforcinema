@@ -8,7 +8,7 @@ certifi==2019.11.28
 chardet==3.0.4
 future==0.18.2
 idna==2.8
-IMDbPY==6.9.dev20191228
+git+https://github.com/alberanid/imdbpy
 kinopoiskpy==0.8.2
 lxml==4.4.2
 multidict==4.7.2
