@@ -16,12 +16,7 @@ dp = Dispatcher(bot)
 ia = IMDb()
 
 
-@dp.message_handler(commands=['start'])
-async def send_welcome(message: types.Message) -> None:
-    await message.reply("Type /movie <title> \n or /actor <full name>")
-
-
-@dp.message_handler(commands=['help'])
+@dp.message_handler(commands=['start, help'])
 async def send_welcome(message: types.Message) -> None:
     await message.reply("Type /movie <title> \n or /actor <full name>")
 
@@ -30,22 +25,6 @@ async def send_welcome(message: types.Message) -> None:
 async def echo(message: types.Message) -> None:
     to_find = str(message.text[7:])
     await message.answer("got task")
-
-    # try:
-    # query_string = urllib.parse.urlencode({"search_query": to_find + " trailer"})
-    # html_content = urllib.request.urlopen("http://www.youtube.com/results?" + query_string)
-    # search_results = re.findall(r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
-    # await message.answer_video("http://www.youtube.com/watch?v=" + search_results[0])
-    # yt = pytube.YouTube("http://www.youtube.com/watch?v=" + search_results[0])
-    # await message.answer("you")
-
-    # st = yt.streams.filter(file_extension='mp4').all()
-    # if st:
-    #    await message.answer("start")
-    # st[-2].download()
-    # await message.answer("end")
-    # except Exception as ex:
-    #    await message.reply(ex)
 
     try:
         search_results = google.search(to_find + " watch online")
@@ -56,7 +35,6 @@ async def echo(message: types.Message) -> None:
         await message.answer("nowhere to watch online")
 
     try:
-
         await message.answer("searching movie imdb...")
 
         movies = ia.search_movie(to_find)
@@ -126,7 +104,9 @@ async def echo(message: types.Message) -> None:
     except IMDbError as e:
         await message.reply('try another (c) IMDB')
     except Exception as ex:
-        await message.reply(str(ex))
+        pass
+        # await message.reply(str(ex))
+
     try:
         await message.answer("Kinopoisk")
         movie_list = Movie.objects.search(to_find)
@@ -134,7 +114,10 @@ async def echo(message: types.Message) -> None:
             await message.answer("nothing found")
             return None
         m = movie_list[0]
-        m.get_content('main_page')
+        try:
+            m.get_content('main_page')
+        except Exception:
+            pass
         if hasattr(m, 'title'):
             await message.answer("title: " + m.title)
         if hasattr(m, 'year'):
@@ -159,13 +142,55 @@ async def echo(message: types.Message) -> None:
             if m.trailers and m.trailers[0].is_valid:
                 await message.answer("https://www.kinopoisk.ru/trailer/player/share/" +
                                  str(m.trailers[0].id) + "/?share=true")
+            else:
+                await message.answer("no trailer, sorry")
         except Exception:
             pass
-        else:
-            await message.answer("no trailer, sorry")
-        await message.answer("end of processing")
+
+        await message.answer("now really long video sending, get ready\n let's count til sended")
+        try:
+            await message.answer("three")
+            query_string = urllib.parse.urlencode({"search_query": to_find + " trailer"})
+            await message.answer("two")
+            html_content = urllib.request.urlopen("http://www.youtube.com/results?" + query_string)
+            await message.answer("one")
+            search_results = re.findall(r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
+            yt = None
+            for el in search_results:
+                try:
+                    yt = pytube.YouTube("http://www.youtube.com/watch?v=" + el)
+                    break
+                except Exception:
+                    pass
+            if not yt:
+                await message.answer("omg no videos")
+                raise Exception("omg no videos")
+
+            await message.answer("zero")
+
+            st = yt.streams.filter(file_extension='mp4').all()
+            if st:
+                await message.answer("negative one")
+                if len(st) > 1:
+                    st[-2].download()
+                else:
+                    st[0].download()
+                await message.answer("negative two")
+            files = [f for f in os.listdir('.') if os.path.isfile(f)]
+            for f in files:
+                if f.endswith(".mp4"):
+                    with open(f, "rb") as fl:
+                        await message.answer("negative infinity")
+                        await bot.send_video(chat_id=message.chat.id, video=fl, supports_streaming=True)
+                    os.remove(f)
+        except Exception as ex:
+            # await message.reply(str(ex))
+            pass
+
     except Exception as ex:
-        await message.reply(str(ex))
+        # await message.reply(str(ex))
+        pass
+    await message.answer("end of processing")
 
 
 @dp.message_handler(commands=["person"])
@@ -192,7 +217,8 @@ async def echo(message: types.Message) -> None:
             await message.answer_photo(person['headshot'])
         await message.answer("end of processing")
     except Exception as ex:
-        await message.answer(str(ex))
+        pass
+        # await message.answer(str(ex))
 
 
 if __name__ == '__main__':
