@@ -6,6 +6,8 @@ from aiogram.utils import executor
 from imdb import IMDb, IMDbError
 from kinopoisk.movie import Movie
 import re
+import urllib.request
+import urllib.parse
 
 # import wikipedia
 # import urllib
@@ -48,6 +50,12 @@ async def send_welcome(message: types.Message) -> None:
 @dp.message_handler(commands=["movie"])
 async def echo(message: types.Message) -> None:
     to_find = str(message.text[7:])
+
+    query_string = urllib.parse.urlencode({"search_query": to_find+" trailer"})
+    html_content = urllib.request.urlopen("http://www.youtube.com/results?" + query_string)
+    search_results = re.findall(r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
+    await message.answer("http://www.youtube.com/watch?v=" + search_results[0])
+
     try:
         await message.answer("searching movie imdb...")
 
@@ -113,7 +121,7 @@ async def echo(message: types.Message) -> None:
                 ur = "".join(ur.split("\n"))
                 await message.answer("smth like trailer:")
                 await message.answer(ur)
-                await message.answer_video(ur)
+                # await message.answer_video(ur)
         else:
             await message.answer("nothing found")
     except IMDbError as e:
