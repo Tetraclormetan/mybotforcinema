@@ -16,9 +16,9 @@ dp = Dispatcher(bot)
 ia = IMDb()
 
 
-@dp.message_handler(commands=['start, help'])
+@dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message) -> None:
-    await message.reply("Type /movie <title> \n or /actor <full name>")
+    await message.reply("Type /movie <title> \n or /person <full name>")
 
 
 @dp.message_handler(commands=["movie"])
