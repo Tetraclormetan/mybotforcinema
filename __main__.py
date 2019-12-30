@@ -53,7 +53,7 @@ async def echo(message: types.Message) -> None:
 
         movies = ia.search_movie(to_find)
         if movies:
-            raise Exception("skip")
+            # raise Exception("skip")
             s = ""
             if "title" in movies[0]:
                 s += "\ntitle: " + str(movies[0]["title"])
@@ -113,6 +113,7 @@ async def echo(message: types.Message) -> None:
                 ur = "".join(ur.split("\n"))
                 await message.answer("smth like trailer:")
                 await message.answer(ur)
+                await message.answer_video(ur)
         else:
             await message.answer("nothing found")
     except IMDbError as e:
