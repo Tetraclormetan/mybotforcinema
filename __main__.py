@@ -146,15 +146,16 @@ async def echo(message: types.Message) -> None:
         if m.posters:
             await message.answer_photo(m.posters[0])
         m.get_content('trailers')
-        if m.trailers:
-            await message.answer(str(dir(m.trailers[0])))
-            await message.answer(str(m.trailers[0].file[:min(50, len(m.trailers[0].file))]))
-            await message.answer(str(m.trailers[0].is_valid))
+        if m.trailers and m.trailers[0].is_valid:
+            # await message.answer(str(dir(m.trailers[0])))
+            # await message.answer(str(m.trailers[0].file[:min(50, len(m.trailers[0].file))]))
+            await message.answer("https://www.kinopoisk.ru/trailer/player/share/" + str(m.trailers[0].id) + "/?share=true")
 
             #file = m.trailers[0].file
             #await message.answer_video(file)
         else:
             await message.answer("no trailer, sorry")
+        await message.answer("end of processing")
     except Exception as ex:
         await message.reply(str(ex))
 
