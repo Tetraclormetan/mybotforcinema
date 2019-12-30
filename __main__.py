@@ -3,11 +3,14 @@ import os
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
-from imdb import IMDb, IMDbError
+from imdb import IMDb, IMDbError, Person
+# from kinopoisk.person import Person
 from kinopoisk.movie import Movie
+from google import google
 import re
 import urllib.request
 import urllib.parse
+import pytube
 
 # import wikipedia
 # import urllib
@@ -43,20 +46,40 @@ async def send_welcome(message: types.Message) -> None:
 
 @dp.message_handler(commands=['help'])
 async def send_welcome(message: types.Message) -> None:
-    # await message.reply(ia.get_movie_infoset())
     await message.reply("Type /movie <title> \n or /actor <full name>")
 
 
 @dp.message_handler(commands=["movie"])
 async def echo(message: types.Message) -> None:
     to_find = str(message.text[7:])
+    await message.answer("got task")
+    
+    # try:
+    # query_string = urllib.parse.urlencode({"search_query": to_find + " trailer"})
+    # html_content = urllib.request.urlopen("http://www.youtube.com/results?" + query_string)
+    # search_results = re.findall(r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
+    # await message.answer_video("http://www.youtube.com/watch?v=" + search_results[0])
+    # yt = pytube.YouTube("http://www.youtube.com/watch?v=" + search_results[0])
+    # await message.answer("you")
 
-    query_string = urllib.parse.urlencode({"search_query": to_find+" trailer"})
-    html_content = urllib.request.urlopen("http://www.youtube.com/results?" + query_string)
-    search_results = re.findall(r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
-    await message.answer("http://www.youtube.com/watch?v=" + search_results[0])
+    # st = yt.streams.filter(file_extension='mp4').all()
+    # if st:
+    #    await message.answer("start")
+    # st[-2].download()
+    # await message.answer("end")
+    # except Exception as ex:
+    #    await message.reply(ex)
 
     try:
+        search_results = google.search(to_find + " watch online")
+        if search_results:
+            await message.answer("try to watch at: ")
+            await message.answer(search_results[0].link)
+    except Exception:
+        await message.answer("nowhere to watch online")
+
+    try:
+
         await message.answer("searching movie imdb...")
 
         movies = ia.search_movie(to_find)
@@ -167,6 +190,34 @@ async def echo(message: types.Message) -> None:
         await message.answer("end of processing")
     except Exception as ex:
         await message.reply(str(ex))
+
+
+@dp.message_handler(commands=["person"])
+async def echo(message: types.Message) -> None:
+    pers = str(message.text[7:])
+    await message.answer("got name")
+    try:
+
+        persons = ia.search_person(pers)
+        if len(persons) == 0:
+            await message.answer("nothing found")
+            return
+        person = ia.get_person(persons[0].getID(), info=['main', 'biography', 'filmography'])
+        if 'name' in person:
+            await message.answer("name: " + str(person['name']))
+        if 'mini biography' in person:
+            await message.answer("biography: \n" +
+                                 str(person['mini biography'][0][:min(150, len(person['mini biography'][0]))]) + "...")
+        if 'filmography' in person:
+            await message.answer("filmography: \n")
+            for el, val in person['filmography'].items():
+                await message.answer(str(el) + " : " + ", ".join(str(x) for x in val[:min(len(val), 5)]))
+        if 'headshot' in person:
+            await message.answer_photo(person['headshot'])
+        await message.answer("end of processing")
+    except Exception as ex:
+        await message.answer(str(ex))
+
 
 
 if __name__ == '__main__':
