@@ -148,13 +148,19 @@ async def echo(message: types.Message) -> None:
         if hasattr(m, "actors"):
             await message.answer("actors: \n" + "\n".join(str(x) for x in m.actors[: min(len(m.actors), 5)]))
         await message.answer("wait for large data...")
-        m.get_content('posters')
-        if m.posters:
-            await message.answer_photo(m.posters[0])
-        m.get_content('trailers')
-        if m.trailers and m.trailers[0].is_valid:
-            await message.answer("https://www.kinopoisk.ru/trailer/player/share/" +
+        try:
+            m.get_content('posters')
+            if m.posters:
+                await message.answer_photo(m.posters[0])
+        except Exception:
+            pass
+        try:
+            m.get_content('trailers')
+            if m.trailers and m.trailers[0].is_valid:
+                await message.answer("https://www.kinopoisk.ru/trailer/player/share/" +
                                  str(m.trailers[0].id) + "/?share=true")
+        except Exception:
+            pass
         else:
             await message.answer("no trailer, sorry")
         await message.answer("end of processing")
